@@ -21,6 +21,7 @@ def get_youtube_video_title(url):
 
 
 def local_clip(filename, start_time, duration, output_filename, output_directory):
+    print(filename)
     end_time = start_time + duration
     command = ['ffmpeg',
                '-i', '"%s"' % filename,
@@ -31,6 +32,7 @@ def local_clip(filename, start_time, duration, output_filename, output_directory
                '-loglevel', 'panic',
                os.path.join(output_directory,output_filename)]
     command = ' '.join(command)
+    # print(command)
     try:
         output = subprocess.check_output(command, shell=True,
                                          stderr=subprocess.STDOUT)
@@ -45,9 +47,9 @@ def wrapper(clip):
 
     # 클립을 받을 폴더 경로
     output_directory = 'videos/seg/'
-
     duration = clip['end']-clip['start']
     video_title = get_youtube_video_title(clip['url'])
+    # print(video_title)
     local_clip(os.path.join(input_directory, video_title+'.mp4'),
                clip['start'], duration, str(clip['end'])+'.mp4',
                output_directory)
@@ -58,6 +60,10 @@ if __name__ == '__main__':
     with open('data/mlb-youtube-segmented.json', 'r') as f:
         data = json.load(f)
         pool = multiprocessing.Pool(processes=8)
+        # print([data[k] for k in data.keys() if 'swing' in data[k]['labels']][0])
+        
+        # pool.map(wrapper, [data[k] for k in data.keys() if 'swing' in data[k]['labels']][:1])
+        # swing이 포함된 영상만 부분 영상 추출
         pool.map(wrapper, [data[k] for k in data.keys() if 'swing' in data[k]['labels']])
 
         # 다운로드 완료 시 'Download Completed !!' 라는 문구 출력
